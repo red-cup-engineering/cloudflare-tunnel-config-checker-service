@@ -1,0 +1,16 @@
+name: qualify
+on: [push, pull_request, workflow_dispatch]
+permissions:
+  contents: read
+jobs:
+  qualification:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      # No registry install needed: the checker uses Node built-ins only.
+      # Never ignore failed tests or promote a mocked host acceptance to production.
+      - run: npm run verify
