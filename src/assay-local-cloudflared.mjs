@@ -6,7 +6,7 @@
  */
 import { readFileSync } from 'node:fs';
 import { hostname } from 'node:os';
-import { resolve } from 'node:path';
+import { basename, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { observeCloudflaredProcessCandidates } from './observe-cloudflared-process-candidates.mjs';
 import { liveInspector, qualifyRunningService } from './verify-running-cloudflared.mjs';
@@ -30,8 +30,10 @@ export function systemdMembershipFromCgroup(contents) {
   const userManagers = parts.filter(p => USER_MANAGER.test(p));
   const candidates = parts.filter(p => UNIT.test(p) && !USER_MANAGER.test(p));
   if (candidates.length !== 1) return null;
-  const inUser = parts.includes('user.slice') && userManagers.length === 1;
-  const inSystem = parts.includes('system.slice') && userManagers.length === 0;
+  const inUser = parts.includes('user.slice') && !parts.includes('system.slice') &&
+    userManagers.length === 1;
+  const inSystem = parts.includes('system.slice') && !parts.includes('user.slice') &&
+    userManagers.length === 0;
   if (inUser === inSystem) return null;
   return Object.freeze({ scope: inUser ? 'user' : 'system', unit: candidates[0] });
 }
@@ -100,6 +102,8 @@ export function assayLocalCloudflared({
     if (!Number.isSafeInteger(pid) || pid < 1 ||
         candidate.status !== 'observed' || typeof candidate.executable !== 'string' ||
         !candidate.executable.startsWith('/') ||
+        basename(candidate.executable) !== 'cloudflared' ||
+        /[\\x00-\\x1f]/.test(candidate.executable) ||
         candidate.executable.endsWith(' (deleted)') ||
         !/^\d+$/.test(candidate.startTicks ?? '') ||
         !/^\d+$/.test(candidate.device ?? '') ||
