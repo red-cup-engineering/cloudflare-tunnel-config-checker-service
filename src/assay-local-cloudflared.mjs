@@ -103,7 +103,7 @@ export function assayLocalCloudflared({
         candidate.status !== 'observed' || typeof candidate.executable !== 'string' ||
         !candidate.executable.startsWith('/') ||
         basename(candidate.executable) !== 'cloudflared' ||
-        /[\\x00-\\x1f]/.test(candidate.executable) ||
+        [...candidate.executable].some(c => c.charCodeAt(0) < 32) ||
         candidate.executable.endsWith(' (deleted)') ||
         !/^\d+$/.test(candidate.startTicks ?? '') ||
         !/^\d+$/.test(candidate.device ?? '') ||
