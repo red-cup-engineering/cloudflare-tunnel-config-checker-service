@@ -59,3 +59,28 @@ An original host operator cannot qualify an **unknown fleet** by checking only t
 The discovery refuses to assert completeness: any unreadable process, disappearing process, deleted executable, changing process identity or malformed witness yields `status: partial`. No matches yields `status: no-candidates`, **not** a proof that no connectors are running. Process renaming, process visibility restrictions, containers, other machines and tunnel-specific identity still need their own owner’s inventory; even `status: candidates-observed` means only a bounded observation, not host-wide security qualification. The hard ceiling is 65,536 enumerated PIDs. No separate schedule, Work/Office appointment, cloud account permission or remote command runner is introduced.
 
 For each discovered real service, combine the candidate with **independent systemd unit/scope** identification, and invoke the existing `verify-running` program for that named unit. The original owner must still patch any vulnerable active connector, verify service restart/reconnection, and independently test the public hostname, unauthenticated access controls and OAuth. This operator path carries [the original Bare Cedar Fog security issue](https://github.com/561-group/561-group-bare-cedar-fog-cloudflare-ingress-services-section/issues/2), rather than replacing its Work identity. Never treat source tests, `no-candidates`, or a convenient historical unit list as a fulfilled receiving condition.
+
+## Compose local discovery and running-process qualification (v0.1.4)
+
+The original two tools deliberately stop at different edges: `observe-process-candidates` finds bounded local `/proc` candidates (not all processes/hosts), and `verify-running` requires the operator to supply a source-qualified systemd scope, unit and executable. The new **opt-in read-only** `assay-local` uses their exact existing exports and only the kernel's unified cgroup *candidate* membership to connect these observations.
+
+On the **actual Linux systemd host**, with the permissions necessary to read local `/proc` and inspect the relevant user/system services:
+
+```sh
+node src/assay-local-cloudflared.mjs --min-version=2026.10.2
+# or: npm run assay-local -- --min-version=2026.10.2
+```
+
+It enumerates the already bounded `comm=cloudflared` candidates, requires an unambiguous cgroup v2 service under `system.slice` or `user.slice/user@UID.service`, and treats that as an **untrusted hint**, never an authorization. It checks candidate PID/start ticks/executable inode, reads that service's actual systemd `MainPID`, executes the running image's `--version` through the existing verifier, and rechecks identity and cgroup membership. A wrong `MainPID`, changed image, insufficient version, disappeared process, ambiguous cgroup or unavailable user-systemd bus refuses qualification; it never calls a shell, executes a restart, reads a connector token, or invents a service or Office.
+
+**Contract:** `cloudflared.local-process-systemd-assay/v1` emits a bounded dated host receipt, a source-observation coverage summary, and up to 32 candidate results (`pid`, `unit`, `scope`, `runningVersion` on success, or a stable non-secret refusal). Its only nominal success is `qualified-candidates`: *every currently visible `comm=cloudflared` candidate in this one local scan had a stable matching systemd MainPID and a sufficiently patched running binary*. This is **not** a proof of a fully inventoried fleet; hidden/renamed processes, containers, other hosts and extra replicas remain unknown. `partial` includes missing candidates, incomplete process reads, unsupported cgroup v1 or hybrid paths, malformed or changing observations, and missing permissions. `candidate-qualification-refused` includes known insufficient versions and mismatched running images. Exit 0 means only `qualified-candidates`; any other receipt exits nonzero. Invalid requests exit 2. Never treat `no-candidates` as absence of vulnerable connectors.
+
+### Source-to-operating receiving
+
+- **CF-ASSAY-01:** every candidate originates in the existing process-discovery producer and its bounded observation; output records that scope explicitly.
+- **CF-ASSAY-02:** cgroup membership is only a *candidate* systemd attribution, confirmed or refused by the existing running-image verifier and exact PID comparison.
+- **CF-ASSAY-03:** process birth identity, executable identity and cgroup membership remain stable before and after the qualification; races cannot become successful observations.
+- **CF-ASSAY-04:** errors and receipts do not transmit raw cgroup contents, argv, environment, tokens, stderr or credential-file contents.
+- **CF-ASSAY-05:** verified local source tests, package availability, installation on the owning host, actual process inspection, remediation and independent public-route/security/OAuth receiving are **different stages**.
+
+This method serves the existing [Bare Cedar Fog ingress security owner](https://github.com/561-group/561-group-bare-cedar-fog-cloudflare-ingress-services-section/issues/2). The file is not installed merely because its source is on GitHub or GitHub Actions passes. The original host owner must still inventory any active instance outside observed local `/proc`, patch each applicable installation, then independently prove actual tunnel reconnection and protected application behavior before closing that security obligation. No new polling schedule, queue, authority, billing commitment or remote host execution capability is introduced.
