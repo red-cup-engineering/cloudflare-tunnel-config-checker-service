@@ -7,11 +7,20 @@ const arg = (name) => process.argv.find((value) => value.startsWith(`--${name}=`
 const bindingPath = arg("binding");
 const unitPath = arg("unit");
 const tokenPath = arg("token");
-const expectTunnelName = arg("expect-tunnel-name");
-const expectHostname = arg("expect-hostname");
-const expectService = arg("expect-service");
-const expectFallback = arg("expect-fallback") ?? "http_status:404";
-const expectAppService = arg("expect-app-service") ?? (expectTunnelName ? `${expectTunnelName}.service` : undefined);
+// A host's expectations are parameters: either the --expect-* flags or one JSON
+// parameter file (--parameters=PATH with tunnelName, hostname, service and
+// optionally fallback and appService). A flag overrides the file.
+const parametersPath = arg("parameters");
+let parameters = {};
+if (parametersPath) {
+  try { parameters = JSON.parse(readFileSync(parametersPath, "utf8")); }
+  catch { process.stderr.write("cloudflare-ingress: REJECT readable JSON --parameters is required when given\n"); process.exit(1); }
+}
+const expectTunnelName = arg("expect-tunnel-name") ?? parameters.tunnelName;
+const expectHostname = arg("expect-hostname") ?? parameters.hostname;
+const expectService = arg("expect-service") ?? parameters.service;
+const expectFallback = arg("expect-fallback") ?? parameters.fallback ?? "http_status:404";
+const expectAppService = arg("expect-app-service") ?? parameters.appService ?? (expectTunnelName ? `${expectTunnelName}.service` : undefined);
 const cloudflaredBin = arg("cloudflared-bin");
 const minCloudflaredVersion = arg("min-cloudflared-version");
 

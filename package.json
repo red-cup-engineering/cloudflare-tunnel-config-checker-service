@@ -1,6 +1,6 @@
 {
   "name": "@red-cup-engineering/cloudflare-tunnel-config-checker-service",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "private": true,
   "type": "module",
   "description": "Qualify Cloudflare Tunnel configuration, exact installed and running binaries, and observed local cgroup-to-systemd process ownership.",

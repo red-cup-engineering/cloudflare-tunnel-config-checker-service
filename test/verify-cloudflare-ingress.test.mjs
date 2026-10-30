@@ -91,3 +91,17 @@ test("rejects when required --expect-* arguments are missing", () => {
     assert.notEqual(result.status, 0);
   } finally { rmSync(dir, { recursive: true, force: true }); }
 });
+
+test("takes the host's expectations from one JSON parameter file, and a flag overrides it", () => {
+  const dir = mkdtempSync(join(tmpdir(), "cloudflare-verify-parameters-"));
+  try {
+    const binding = write(dir, "binding.json", bindingObject());
+    const unit = write(dir, "unit.service", unitText());
+    const parameters = write(dir, "parameters.json", { tunnelName: TUNNEL_NAME, hostname: HOSTNAME, service: SERVICE });
+    const environment = { ...process.env }; delete environment.NODE_TEST_CONTEXT;
+    const base = [verifier, `--binding=${binding}`, `--unit=${unit}`, `--parameters=${parameters}`];
+    assert.equal(spawnSync(process.execPath, base, { encoding: "utf8", env: environment }).status, 0);
+    assert.notEqual(spawnSync(process.execPath, [...base, "--expect-hostname=other.561.group"], { encoding: "utf8", env: environment }).status, 0);
+    assert.notEqual(spawnSync(process.execPath, [verifier, `--binding=${binding}`, `--unit=${unit}`, `--parameters=${join(dir, "missing.json")}`], { encoding: "utf8", env: environment }).status, 0);
+  } finally { rmSync(dir, { recursive: true, force: true }); }
+});
