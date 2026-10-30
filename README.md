@@ -9,6 +9,10 @@
 
 Verify that a named tunnel's route binding and systemd unit conform to the fixed laptop-owned token-file ingress shape.
 
+## Host parameters
+
+A host's expectations are parameters, not code. Pass them as `--expect-tunnel-name`, `--expect-hostname`, `--expect-service` (and optionally `--expect-fallback`, `--expect-app-service`), or supply them once as a JSON file: `--parameters=PATH` with `tunnelName`, `hostname`, `service` and optionally `fallback` and `appService`. A flag overrides the file. Bare Cedar Fog's parameters live in `561-group/bare-cedar-fog.561.group` at `deployment/ingress/tunnel-parameters.json`.
+
 ## Opt-in host binary version qualification
 
 The static route/unit verifier does **not** establish that an installed or running `cloudflared` binary is patched. For a bounded **installed-file** check, add both `--cloudflared-bin=/absolute/path/to/cloudflared` and `--min-cloudflared-version=YYYY.M.P` to the existing `verify-ingress` invocation. For the October 2026 eMudhra certificate compromise, Cloudflare's required floor is **2026.10.2** (or **2026.10.3** for non-Homebrew macOS). See [Cloudflare's 2026-10-20 incident bulletin](https://blog.cloudflare.com/emudhra-certificate-compromise/).
